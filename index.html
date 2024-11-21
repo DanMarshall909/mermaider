@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mermaid Diagram from Query String</title>
+
+        <!-- Import TailwindCSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+    </head>
+    <body class="bg-gray-800 text-gray-200 p-8">
+        <div class="container mx-auto max-w-5xl">
+            <!-- Navigation Tabs -->
+            <div class="flex space-x-4 mb-8">
+                <button class="bg-gray-700 text-white px-4 py-2 rounded-md"
+                    onclick="openTab('diagramTab')">View Diagram</button>
+                <button class="bg-gray-700 text-white px-4 py-2 rounded-md"
+                    onclick="openTab('urlTab')">Generate URL</button>
+                <button class="bg-gray-700 text-white px-4 py-2 rounded-md"
+                    onclick="openTab('styleTab')">Customize Style</button>
+            </div>
+
+            <!-- Tab Content: Diagram Viewer -->
+            <div id="diagramTab" class="tabContent">
+                <h1 id="diagramTitle"
+                    class="text-2xl font-bold text-orange-500 mb-4"></h1>
+
+                <!-- Mermaid diagram with full-width border -->
+                <div
+                    class="w-full border-2 border-olive-500 p-4 rounded-lg bg-gray-900 flex justify-center">
+                    <div class="mermaid"></div>
+                </div>
+
+                <!-- Description under the diagram -->
+                <p id="diagramDescription"
+                    class="text-center text-gray-400 mt-4"></p>
+            </div>
+
+            <!-- Tab Content: URL Generator -->
+            <div id="urlTab" class="tabContent hidden">
+                <h2 class="text-xl font-bold text-orange-500 mb-4">Convert
+                    Mermaid to URL</h2>
+                <textarea id="mermaidInput"
+                    class="w-full h-48 p-4 bg-gray-700 text-gray-200 rounded-md mb-4"
+                    placeholder="Paste Mermaid syntax here..."
+                    oninput="updateUrl()" onpaste="updateUrl()"></textarea>
+                <input type="text" id="encodedUrl"
+                    class="w-full mt-4 p-4 bg-gray-700 text-gray-200 rounded-md"
+                    readonly placeholder="Your encoded URL will appear here">
+            </div>
+
+            <!-- Tab Content: Styling Options -->
+            <div id="styleTab" class="tabContent hidden">
+                <h2 class="text-xl font-bold text-orange-500 mb-4">Customize
+                    Mermaid Diagram Style</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="primaryColor" class="block mb-2">Primary
+                            Node Color</label>
+                        <input type="color" id="primaryColor" value="#ff6600"
+                            class="w-full h-10">
+                    </div>
+                    <div>
+                        <label for="secondaryColor" class="block mb-2">Secondary
+                            Node Color</label>
+                        <input type="color" id="secondaryColor" value="#808000"
+                            class="w-full h-10">
+                    </div>
+                    <div>
+                        <label for="nodeTextColor" class="block mb-2">Node Text
+                            Color</label>
+                        <input type="color" id="nodeTextColor" value="#ffffff"
+                            class="w-full h-10">
+                    </div>
+                    <div>
+                        <label for="backgroundColor"
+                            class="block mb-2">Background Color</label>
+                        <input type="color" id="backgroundColor" value="#333333"
+                            class="w-full h-10">
+                    </div>
+                </div>
+                <button
+                    class="bg-orange-500 px-4 py-2 mt-4 rounded-md text-white"
+                    onclick="updateMermaidConfig()">Apply Styles</button>
+            </div>
+        </div>
+
+        <!-- Move the scripts here so functions are defined before they're used -->
+        <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+        // Default Mermaid configuration
+        let mermaidConfig = {
+            startOnLoad: true,
+            theme: 'dark', // Set Mermaid's default dark theme
+            themeVariables: {
+                primaryColor: '#ff6600',    // Orange for primary nodes
+                primaryTextColor: '#ffffff', // White text for primary nodes
+                secondaryColor: '#808000',  // Olive for secondary nodes
+                tertiaryColor: '#404040',   // Dark grey background
+                edgeLabelBackground: '#ff6600', // Orange background for edge labels
+                lineColor: '#ff6600',       // Orange lines for edges
+                fontFamily: 'Arial, sans-serif', // Set the font family
+                nodeTextColor: '#e0e0e0',   // Light text for nodes
+                nodeBorder: '#808000',      // Olive borders for nodes
+                clusterPadding: '15',       // Added padding around the labels
+                labelPadding: '10',         // Padding between text and label edges
+                background: '#333333'       // Dark background for the diagram
+            }
+        };
+
+        // Apply the current Mermaid config and render
+        function applyMermaidConfig() {
+            mermaid.initialize(mermaidConfig);
+            const diagramContent = document.getElementById("mermaidInput").value;
+            const mermaidDiv = document.querySelector('.mermaid');
+            mermaidDiv.textContent = diagramContent.trim();
+            mermaid.init(undefined, mermaidDiv); // Re-render the Mermaid diagram
+        }
+
+        // Function to encode Mermaid input to URL and update browser bar
+        function updateUrl() {
+            const input = document.getElementById("mermaidInput").value;
+            const encoded = encodeURIComponent(input);
+            const url = `?diagram=${encoded}`;
+            
+            // Update the browser URL without reloading the page
+            window.history.pushState({}, '', url);
+            
+            // Optionally, update the input box with the encoded URL
+            document.getElementById("encodedUrl").value = url;
+
+            // Re-render the diagram with the latest content
+            applyMermaidConfig();
+        }
+
+        // Function to update the Mermaid configuration based on user inputs
+        function updateMermaidConfig() {
+            const primaryColor = document.getElementById('primaryColor').value;
+            const secondaryColor = document.getElementById('secondaryColor').value;
+            const nodeTextColor = document.getElementById('nodeTextColor').value;
+            const backgroundColor = document.getElementById('backgroundColor').value;
+
+            // Update Mermaid config with new styles
+            mermaidConfig.themeVariables.primaryColor = primaryColor;
+            mermaidConfig.themeVariables.secondaryColor = secondaryColor;
+            mermaidConfig.themeVariables.nodeTextColor = nodeTextColor;
+            mermaidConfig.themeVariables.background = backgroundColor;
+
+            // Re-apply the configuration
+            applyMermaidConfig();
+        }
+    </script>
+
+        <script>
+            // Switch between tabs
+            function openTab(tabId) {
+                // Hide all tab content
+                document.querySelectorAll('.tabContent').forEach(tab => {
+                    tab.classList.add('hidden');
+                });
+
+                // Show the selected tab
+                document.getElementById(tabId).classList.remove('hidden');
+            }
+        </script>
+
+    </body>
+</html>
